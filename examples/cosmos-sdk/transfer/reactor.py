@@ -2,6 +2,7 @@ import logging
 import time
 
 from atomkraft.chain import Testnet
+from atomkraft.chain.utils import TmEventSubscribe
 from modelator.pytest.decorators import step
 from terra_sdk.core.bank import MsgSend
 
@@ -12,8 +13,9 @@ def init(testnet: Testnet, action):
     testnet.set_accounts(action.value.wallets)
     testnet.verbose = True
     testnet.oneshot()
-    time.sleep(10)
-    logging.info("Status: Testnet launched\n")
+
+    with TmEventSubscribe({"tm.event": "NewBlock"}):
+        logging.info("Status: Testnet launched\n")
 
 
 @step("Transfer")
