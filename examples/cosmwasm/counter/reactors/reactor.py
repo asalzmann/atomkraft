@@ -8,6 +8,7 @@ from typing import Dict
 
 import pytest
 from atomkraft.chain import Testnet
+from atomkraft.chain.utils import TmEventSubscribe
 from modelator.pytest.decorators import step
 from terra_proto.cosmwasm.wasm.v1 import QueryStub
 from terra_sdk.core import Coin, Coins
@@ -24,7 +25,9 @@ def state():
 def store_contract(testnet: Testnet, state: Dict, last_msg):
     logging.info("Step: store_cw_contract")
     testnet.oneshot()
-    time.sleep(10)
+
+    with TmEventSubscribe({"tm.event": "NewBlock"}):
+        logging.info("Status: Testnet launched")
 
     wasm_binary = "cosmwasm-contract/target/wasm32-unknown-unknown/release/counter.wasm"
 
@@ -41,7 +44,7 @@ def store_contract(testnet: Testnet, state: Dict, last_msg):
         last_msg.sender, msg, gas=20000000, fee_amount=2000000
     )
 
-    logging.info(str("Contract is uploaded"))
+    logging.info("Contract is uploaded")
     logging.info(str(result))
 
     for event in result.logs[0].events:
